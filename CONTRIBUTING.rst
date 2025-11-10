@@ -29,7 +29,7 @@ Setting Up Your Development Environment
 
     .. code-block:: bash
 
-       conda create -n pyamares-dev python=3.8
+       conda create -n pyamares-dev python=3.12
        conda activate pyamares-dev
 
     .. note::

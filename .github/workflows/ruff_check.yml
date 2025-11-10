@@ -18,11 +18,11 @@ jobs:
       # Checks out your repository's code so the workflow can access it
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.8
+    - name: Set up Python 3.12
       # Sets up the specific Python version requested
       uses: actions/setup-python@v5
       with:
-        python-version: '3.8'
+        python-version: '3.12'
 
     - name: Install dependencies (including Ruff)
       # Installs necessary packages. Assumes Ruff is listed as a dev dependency.

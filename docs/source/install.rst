@@ -7,7 +7,7 @@ Installation Guide
    :alt: Python Version
 
 .. note::
-   PyAMARES requires Python 3.6 or newer. We recommend using Python 3.8 or newer. If you are using an older version of Python, you will need to upgrade to use pyAMARES.
+   PyAMARES requires Python 3.9 or newer. We recommend using Python 3.12 or newer. If you are using an older version of Python, you will need to upgrade to use pyAMARES.
 
 
 PIP installation
@@ -18,7 +18,7 @@ __________________
 
       It is recommended to create a Python environment using `Anaconda or Miniconda <https://docs.anaconda.com/anaconda/install/index.html>`_.
 
-      PyAMARES requires Python 3.6 or higher. To create a new ``conda`` environment with Python 3.8, follow these steps:
+      PyAMARES requires Python 3.9 or higher. To create a new ``conda`` environment with Python 3.12, follow these steps:
 
       1. Open a terminal window.
 
@@ -26,7 +26,7 @@ __________________
 
          .. code-block:: bash
 
-            conda create -n env_name python=3.8
+            conda create -n env_name python=3.12
 
          Here, replace ``env_name`` with the desired name for your PyAMARES environment.
 
