@@ -15,7 +15,9 @@ logger = get_logger(__name__)
 
 def safe_convert_to_numeric(x):
     try:
-        return pd.to_numeric(x, errors="raise")
+        return pd.to_numeric(
+            x, downcast="float", errors="raise"
+        )  # Use float as default output type
     except (ValueError, TypeError):
         return x
 
