@@ -13,6 +13,13 @@ from .fid import fft_params
 logger = get_logger(__name__)
 
 
+def safe_convert_to_numeric(x):
+    try:
+        return pd.to_numeric(x, errors="raise")
+    except (ValueError, TypeError):
+        return x
+
+
 def refindall(expr):
     # Work in the same way as matches = re.findall(r"(\d+)(Hz|ppm)", expr) but support decimals
     expr = expr.replace(" ", "")
@@ -88,7 +95,7 @@ def extractini(pk, MHz=120.0):
                     df.at[idx, col], df.loc[idx], MHz
                 )
 
-    df = df.apply(pd.to_numeric, errors="ignore")
+    df = df.apply(safe_convert_to_numeric)
 
     return df
 
@@ -316,9 +323,8 @@ def generateparameter(
         )
     else:
         raise NotImplementedError("file format must be Excel (xlsx) or CSV!")
-    pk = pk.applymap(
-        lambda x: pd.to_numeric(x, errors="ignore")
-    )  # To be compatible with CSV
+
+    pk = pk.map(safe_convert_to_numeric)  # To be compatible with CSV
 
     peaklist = pk.columns.to_list()  # generate a peak list directly from the
     [assert_peak_format(x) for x in peaklist]
