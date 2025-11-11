@@ -1,0 +1,9 @@
+name: Auto Test Installation
+
+on:
+  push:
+    branches: [main, dev]
+
+jobs:
+  test-install:
+    uses: ./.github/workflows/test-install.yml

@@ -1,0 +1,11 @@
+name: Auto Test Notebooks
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-notebooks:
+    uses: ./.github/workflows/test-notebooks.yml

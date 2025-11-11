@@ -1,8 +1,12 @@
 name: Test Installation
 
 on:
-  push:
-    branches: [main, dev]
+  workflow_call: # Make this workflow reusable
+    inputs:
+      python-versions:
+        description: 'Python versions to test'
+        required: false
+        default: "['3.11', '3.12', '3.13', '3.14']"
 
 jobs:
   test:
@@ -10,9 +14,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # see https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.11', '3.12', '3.13', '3.14']
+        python-version: ${{ fromJson(inputs.python-versions) }}
 
     steps:
       - name: Checkout code
