@@ -126,7 +126,7 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.9",  # Minimum Python version requirement
+    python_requires=">=3.11",  # Minimum Python version requirement
     install_requires=install_requires,
     extras_require={
         "docs": doc_requirements,
