@@ -1,0 +1,11 @@
+name: Auto Test Notebooks
+
+on:
+  push:
+    branches: [main, dev, pr-9-rev] # temporarily add pr-9-rev for testing
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-notebooks:
+    uses: ./.github/workflows/test-notebooks.yml

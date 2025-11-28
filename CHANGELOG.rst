@@ -19,11 +19,15 @@ s needed
 
 v0.3.29
 ~~~~~~~
+
+
 **Added** 
   - Added a streamlit app ``script/amaresfit_gui.py`` to provide a graphical user interface for pyAMARES. 
 
 v0.3.28
 ~~~~~~~
+
+
 **Fixed**
   - Fixed a bug in CRLB calculation that caused failures when multiple fitting parameters were fixed.
   - Fixed logger print format typos across multiple files.

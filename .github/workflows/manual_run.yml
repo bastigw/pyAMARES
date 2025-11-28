@@ -1,0 +1,14 @@
+name: Manual Run
+
+on:
+  workflow_dispatch: # Allows manual invocation
+
+jobs:
+  test-install:
+    uses: ./.github/workflows/test-install.yml
+
+  ruff-check:
+    uses: ./.github/workflows/ruff_check.yml
+
+  test-notebooks:
+    uses: ./.github/workflows/test-notebooks.yml

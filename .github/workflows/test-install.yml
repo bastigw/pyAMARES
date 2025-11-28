@@ -1,10 +1,13 @@
 name: Test Installation
 
 on:
-  push:
-    branches:
-      - dev
-      - main
+  workflow_call: # Make this workflow reusable
+    inputs:
+      python-versions:
+        description: 'Python versions to test'
+        required: false
+        default: "['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']"
+        type: string
 
 jobs:
   test:
@@ -12,25 +15,23 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # see https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners
-        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
-        python-version: ["3.9", "3.11"]
+        os: [ubuntu-latest, windows-latest, macos-latest] # Drop intel macOS unless needed
+        python-version: ${{ fromJson(inputs.python-versions) }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
-        python -m pip install .
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install .
 
-    - name: Verify installation
-      run: |
-        python -c "import pyAMARES"
-
+      - name: Verify installation
+        run: |
+          python -c "import pyAMARES"
