@@ -339,6 +339,9 @@ def generateparameter(
     df_expr = extract_expr(pk, MHz=MHz)  # Parse expression
     df_lb2 = unitconverter(df_lb, MHz=MHz)
     df_ub2 = unitconverter(df_ub, MHz=MHz)
+    # Make sure the bounds are numeric
+    df_lb2 = df_lb2.map(safe_convert_to_numeric)
+    df_ub2 = df_ub2.map(safe_convert_to_numeric)
     if g_global is False:
         logger.debug(
             "Parameter g will be fit with the initial value set in the file %s" % fname
