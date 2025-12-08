@@ -1,6 +1,7 @@
 import argparse
 
 import mat73
+import numpy as np
 from scipy import io
 
 from ..libs.logger import get_logger
@@ -79,9 +80,9 @@ def header2par_v73(h):
     # (so include the time to the iso centre of the RF pulse for
     # initializing the linear phase in the Amares fit)
     header = argparse.Namespace()
-    header.MHz = MHz
-    header.sw = sw.item()  # 0-dimensional numpy array to float
-    header.deadtime = deadtime
+    header.MHz = np.asarray(MHz).item()
+    header.sw = np.asarray(sw).item()
+    header.deadtime = np.asarray(deadtime).item()
     return header
 
 
@@ -135,6 +136,6 @@ def read_fidall(filename):
         )
 
     # print("data.shape=", data.shape)
-    logger.info("data.shape=%s", data.shape)
+    logger.debug("data.shape=%s", data.shape)
 
     return header, data
