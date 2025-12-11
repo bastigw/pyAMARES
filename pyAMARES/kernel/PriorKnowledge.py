@@ -181,6 +181,9 @@ def unitconverter(df_ini, MHz=120.0):
         pandas.DataFrame: A DataFrame with converted unit values in specified rows.
     """
     df = deepcopy(df_ini)
+    df = df.apply(
+        pd.to_numeric, errors="raise", downcast="float"
+    )  # By this point the values should only be numeric
     if "chemicalshift" in df.index:
         df.loc["chemicalshift", df.notna().loc["chemicalshift"]] *= MHz
 
@@ -189,7 +192,7 @@ def unitconverter(df_ini, MHz=120.0):
 
     if "phase" in df.index:
         df.loc["phase", df.notna().loc["phase"]] = np.deg2rad(
-            df.loc["phase"][df.notna().loc["phase"]].astype(float)
+            df.loc["phase"][df.notna().loc["phase"]]
         )
 
     return df
