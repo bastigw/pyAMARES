@@ -326,7 +326,12 @@ def generateparameter(
     else:
         raise NotImplementedError("file format must be Excel (xlsx) or CSV!")
 
-    pk = pk.map(safe_convert_to_numeric)  # To be compatible with CSV
+    # Compatible with pandas both older and newer than 2.1.0
+    pk = (
+        pk.map(safe_convert_to_numeric)
+        if hasattr(pk, "map")
+        else pk.applymap(safe_convert_to_numeric)
+    )  # To be compatible with CSV
 
     peaklist = pk.columns.to_list()  # generate a peak list directly from the
     [assert_peak_format(x) for x in peaklist]
@@ -340,8 +345,17 @@ def generateparameter(
     df_lb2 = unitconverter(df_lb, MHz=MHz)
     df_ub2 = unitconverter(df_ub, MHz=MHz)
     # Make sure the bounds are numeric
-    df_lb2 = df_lb2.map(safe_convert_to_numeric)
-    df_ub2 = df_ub2.map(safe_convert_to_numeric)
+    # Compatible with pandas both older and newer than 2.1.0
+    df_lb2 = (
+        df_lb2.map(safe_convert_to_numeric)
+        if hasattr(df_lb2, "map")
+        else df_lb2.applymap(safe_convert_to_numeric)
+    )
+    df_ub2 = (
+        df_ub2.map(safe_convert_to_numeric)
+        if hasattr(df_ub2, "map")
+        else df_ub2.applymap(safe_convert_to_numeric)
+    )
     if g_global is False:
         logger.debug(
             "Parameter g will be fit with the initial value set in the file %s" % fname
