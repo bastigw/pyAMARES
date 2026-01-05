@@ -32,6 +32,6 @@ __pycache__
 .jupyter_cache
 
 # Ignore log files
-tests/*.log
+tests/**/*.log
 tests/multiprocess_log.txt
 .vscode
