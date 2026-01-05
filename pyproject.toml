@@ -2,15 +2,76 @@
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "pyAMARES"
+version = "0.33.3" # Replace with dynamic versioning if needed
+description = "PyAMARES, an Open-Source Python Library for Fitting Magnetic Resonance Spectroscopy Data"
+readme = "README.rst"
+license = { file = "LICENSE.txt" }
+authors = [{ name = "Jia Xu", email = "jia-xu-1@uiowa.edu" }]
+keywords = ["magnetic resonance", "spectroscopy", "fitting", "MRS"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "matplotlib",
+    "nmrglue",
+    "numpy",
+    "pandas",
+    "scipy",
+    "setuptools",
+    "sympy",
+    "lmfit",
+    "mat73",
+    "tqdm",
+    "notebook",
+    "hlsvdpro>=2.0.0; (platform_machine == 'x86_64' or platform_machine == 'amd64')",
+]
+
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+    "nbsphinx",
+    "sphinx_tabs",
+    "sphinx_rtd_theme",
+    "Pygments",
+    "ipywidgets",
+]
+jupyter = ["ipykernel", "notebook"]
+ruff = ["ruff", "pre-commit", "pytest"]
+dev = [
+    "ipykernel",
+    "notebook",
+    "sphinx",
+    "nbsphinx",
+    "sphinx_tabs",
+    "sphinx_rtd_theme",
+    "Pygments",
+    "ipywidgets",
+    "ruff",
+    "pre-commit",
+    "pytest",
+]
+
 [tool.ruff]
 line-length = 88
-target-version = "py37"  
-# Exclude all Jupyter notebooks and third-party code
-exclude = ["*.ipynb", 
-           "pyAMARES/libs/hlsvd.py" ]  
+target-version = "py37"
+exclude = ["*.ipynb", "pyAMARES/libs/hlsvd.py"]
 lint.select = ["E", "F", "W", "I"]
-lint.ignore = ["E741", "E501",]
+lint.ignore = ["E741", "E501"]
 
-# E501 (line length limit) is skipped because Sphinx does not allow manual line breaks 
-# in docstrings, and there is currently no way to enforce E501 for code while 
-# selectively ignoring docstrings.
+[project.urls]
+homepage = "https://github.com/hawkMRS/pyAMARES"
+repository = "https://github.com/hawkMRS/pyAMARES"
+documentation = "https://pyamares.readthedocs.io"
