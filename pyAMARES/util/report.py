@@ -23,10 +23,18 @@ except ImportError:
 
 def get_min_max_deg(resulttable):
     # Extract min and max degrees from the constraints in the ``resultpd``
-    phitable = resulttable[resulttable.name.str.startswith("phi")]
-    min_deg = np.rad2deg(phitable["min"].min())
-    max_deg = np.rad2deg(phitable["max"].max())
-    return min_deg, max_deg
+    # Only consider phase parameters where vary is True
+    # Handle the case where there are no phase parameters
+    phitable = resulttable[resulttable.name.str.startswith("phi") & resulttable.vary]
+    if phitable.empty:
+        logger.debug(
+            "No varying phase parameters found. Most likely due to only fixed phase parameters. Using default range [0, 360]."
+        )
+        return 0.0, 360.0
+    else:
+        min_deg = np.rad2deg(phitable["min"].min())
+        max_deg = np.rad2deg(phitable["max"].max())
+        return min_deg, max_deg
 
 
 def wrap_degrees(val_deg, min_deg, max_deg):
