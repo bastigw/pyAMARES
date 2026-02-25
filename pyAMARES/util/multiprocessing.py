@@ -15,6 +15,7 @@ def fit_dataset(
     method="leastsq",
     initialize_with_lm=False,
     objective_func=None,
+    return_out=False,
 ):
     """
     Fits a dataset to a shared FID Parameter object using the AMARES algorithm
@@ -66,8 +67,11 @@ def fit_dataset(
 
         result_table = FIDobj_current.result_multiplets
         del FIDobj_current
-        del out
-        return result_table
+        if return_out:
+            return result_table, out
+        else:
+            del out
+            return result_table
     except Exception as e:
         logger.critical(f"Error in fit_dataset: {e}")
         return None
