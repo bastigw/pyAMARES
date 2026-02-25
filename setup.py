@@ -94,8 +94,8 @@ install_requires = [
     "ipython",
     "ipykernel",
     "requests",
-    "ipywidgets>=7.6.0,<8.0.0;python_version<'3.11'",  # For older Python versions
-    "ipywidgets>=8.0.0;python_version>='3.11'",  # For newer Python versions
+    "ipywidgets>=7.6.0,<8.0.0;python_version<'3.10'",  # For older Python versions
+    "ipywidgets>=8.0.0;python_version>='3.10'",  # For newer Python versions
 ]
 
 # Use the better-performing 'hlsvdpro' package if running on supported platforms
