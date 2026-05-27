@@ -37,6 +37,7 @@ dependencies = [
     "tqdm",
     "notebook",
     "hlsvdpro>=2.0.0; (platform_machine == 'x86_64' or platform_machine == 'amd64')",
+    "loguru>=0.7.3",
 ]
 
 [project.optional-dependencies]
