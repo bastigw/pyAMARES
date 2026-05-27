@@ -1,6 +1,7 @@
 import argparse
 import re
 from copy import deepcopy
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -293,7 +294,7 @@ def find_header_row(filename, comment_char="#"):
 
 
 def generateparameter(
-    fname,
+    df_or_fname: str | Path | pd.DataFrame,
     MHz=120.0,
     g_global=0.0,
     scale_amplitude=1.0,
@@ -318,16 +319,48 @@ def generateparameter(
     Returns:
         lmfit.Parameters: Parameters object with initialized parameters for modeling.
     """
-    if fname.endswith("xlsx") or fname.endswith("xls"):
-        pk = pd.read_excel(
-            fname, index_col=0, sheet_name=0, comment="#"
-        )  # , skiprows=find_header_row(fname), comment='#')
-    elif fname.endswith(".csv"):
-        pk = pd.read_csv(
-            fname, index_col=0, skiprows=find_header_row(fname), comment="#"
-        )
+    if isinstance(df_or_fname, pd.DataFrame):
+        pk = df_or_fname
     else:
-        raise NotImplementedError("file format must be Excel (xlsx) or CSV!")
+        fileending = Path(df_or_fname).suffix
+        if fileending in [".xlsx", ".xls"]:
+            pk = pd.read_excel(
+                df_or_fname, index_col=0, sheet_name=0, comment="#"
+            )  # , skiprows=find_header_row(fname), comment='#')
+        elif fileending == ".csv":
+            pk = pd.read_csv(
+                df_or_fname,
+                index_col=0,
+                skiprows=find_header_row(df_or_fname),
+                comment="#",
+            )
+        else:
+            raise NotImplementedError("file format must be Excel (xlsx) or CSV!")
+
+    # Check index
+    # If it is still a column, try to set it as index.
+    if "Index" in pk.columns:
+        pk.set_index("Index", inplace=True)
+
+    required_index = [
+        "Initial Values",
+        "amplitude",
+        "chemicalshift",
+        "linewidth",
+        "phase",
+        "g",
+        "Bounds",
+        "amplitude",
+        "chemicalshift",
+        "linewidth",
+        "phase",
+        "g",
+    ]
+    if not all(pk.index == required_index):
+        raise ValueError(
+            "The DataFrame index does not match the expected format. Please ensure the DataFrame has the correct structure."
+            f"Expected index: {required_index}, but got {pk.index.tolist()}"
+        )
 
     def backward_compatible_map(df, func):
         # Check if the newer 'map' method exists (pandas >= 2.1.0)
@@ -357,7 +390,7 @@ def generateparameter(
     df_ub2 = backward_compatible_map(df_ub2, safe_convert_to_numeric)
     if g_global is False:
         logger.debug(
-            f"Parameter g will be fit with the initial value set in the file {fname}"
+            "Parameter g will be fit with the initial value set in the prior knowledge dataframe"
         )
     allpara = Parameters()
     for peak in dfini2.columns:
