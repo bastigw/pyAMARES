@@ -49,12 +49,12 @@ def leja(x_in):
     x_out[0] = a[n, 0]
     a[1, 1:n] = np.abs(a[1, 1:n] - x_out[0])
 
-    for l in range(1, n - 1):
-        product_max = np.argmax(np.prod(a[:l, l:n], axis=0)) + l
-        if l != product_max:
-            a[:, [l, product_max]] = a[:, [product_max, l]]  # Swap columns in 'a'
-        x_out[l] = a[n, l]
-        a[l + 1, l + 1 : n] = np.abs(a[l + 1, l + 1 : n] - x_out[l])
+    for idx in range(1, n - 1):
+        product_max = np.argmax(np.prod(a[:idx, idx:n], axis=0)) + idx
+        if idx != product_max:
+            a[:, [idx, product_max]] = a[:, [product_max, idx]]  # Swap columns in 'a'
+        x_out[idx] = a[n, idx]
+        a[idx + 1, idx + 1 : n] = np.abs(a[idx + 1, idx + 1 : n] - x_out[idx])
 
     x_out[-1] = a[n, n - 1]
     return x_out

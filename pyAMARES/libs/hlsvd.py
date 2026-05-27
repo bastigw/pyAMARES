@@ -27,13 +27,14 @@ Example:
 
 # Python modules
 from __future__ import division
+
 import math
 
 # 3rd party modules
 import numpy as np
 import scipy.linalg
-import scipy.sparse.linalg
 import scipy.linalg.lapack as lapack
+import scipy.sparse.linalg
 
 # Our modules
 
@@ -136,10 +137,10 @@ def hlsvdpro(data, nsv_sought, m=None, sparse=False):
     n = len(xx)
     m = int(n / 2) if m is None else m
 
-    l = n - m - 1
+    L = n - m - 1
 
     if mode == "f":
-        x = scipy.linalg.hankel(xx[: l + 1], xx[l:])
+        x = scipy.linalg.hankel(xx[: L + 1], xx[L:])
     else:
         # for backward LP we need to make the hankel matrix:
         #    x_N-1 x_N-2 ... x_N-M-1
@@ -305,9 +306,9 @@ def get_testdata():
         ndarray: 1024 complex128 numbers representative of a short TE single
             voxel time domain FID data set.
     """
+    import base64
     import io
     import zlib
-    import base64
 
     return np.load(io.BytesIO(zlib.decompress(base64.b64decode(TESTDATA["data"]))))
 
