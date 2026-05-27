@@ -334,6 +334,8 @@ def generateparameter(
                 skiprows=find_header_row(df_or_fname),
                 comment="#",
             )
+            # Drop rows where index is nan
+            pk = pk[pk.index.notna()]
         else:
             raise NotImplementedError("file format must be Excel (xlsx) or CSV!")
 
@@ -356,10 +358,25 @@ def generateparameter(
         "phase",
         "g",
     ]
-    if not all(pk.index == required_index):
+
+    try:
+        if not pk.index.tolist() == required_index:
+            raise ValueError
+    except ValueError:
+        from itertools import zip_longest
+
+        index_lines = ""
+        for expected, actual in zip_longest(required_index, pk.index.tolist()):
+            if expected != actual:
+                match_status = "No match"
+            else:
+                match_status = "OK"
+            index_lines += (
+                f"  {str(expected):<20} -> {str(actual):<20} ({match_status})\n"
+            )
         raise ValueError(
             "The DataFrame index does not match the expected format. Please ensure the DataFrame has the correct structure."
-            f"Expected index: {required_index}, but got {pk.index.tolist()}"
+            f"\nExpected vs actual index entries:\n{index_lines}\nCheck pk dataframe or file!"
         )
 
     def backward_compatible_map(df, func):
