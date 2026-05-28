@@ -47,3 +47,4 @@ env/
 tests/**/*.log
 tests/multiprocess_log.txt
 .vscode
+.github/agents
