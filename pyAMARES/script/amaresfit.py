@@ -1,5 +1,4 @@
 import argparse
-import sys
 
 import pyAMARES
 
@@ -207,12 +206,7 @@ def main():
     else:
         out1.result_sum.to_csv(args.output + ".csv")
 
-    if sys.version_info >= (3, 7):
-        out1.styled_df.to_html(args.output + ".html")
-    else:
-        print(
-            "Skipping highlighted table HTML output because it only works with Python >= 3.7"
-        )
+    out1.styled_df.to_html(args.output + ".html")
     if args.ifplot:
         out1.plotParameters.ifphase = args.ifphase
         out1.plotParameters.lb = args.lb

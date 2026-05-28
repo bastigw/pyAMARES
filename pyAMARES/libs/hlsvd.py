@@ -26,7 +26,6 @@ Example:
 """
 
 # Python modules
-from __future__ import division
 
 import math
 
@@ -380,9 +379,9 @@ def _example():
     fitt[0] *= 0.5
 
     plt.subplot(1, 2, 2)
-    plt.plot(np.fft.fft(_chop((datt))).real, color="r")
-    plt.plot(np.fft.fft(_chop((fitt))).real, color="b")
-    plt.plot(np.fft.fft(_chop((datt - fitt))).real, color="g")
+    plt.plot(np.fft.fft(_chop(datt)).real, color="r")
+    plt.plot(np.fft.fft(_chop(fitt)).real, color="b")
+    plt.plot(np.fft.fft(_chop(datt - fitt)).real, color="g")
     plt.title("HLSVDProPy fit overlay Data and Residual [Freq]")
 
     plt.show()

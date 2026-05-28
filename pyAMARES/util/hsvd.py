@@ -55,9 +55,7 @@ def HSVDp0(hsvdfid, timeaxis, ppm, MHz=120, ifplot=True):
         Returns:
             numpy.ndarray: Interleaved real and imaginary parts of the modeled FID.
         """
-        fid = (
-            ak * np.exp(1j * phi) * np.exp(-dk * x) * np.exp((1j * 2 * np.pi * fk * x))
-        )
+        fid = ak * np.exp(1j * phi) * np.exp(-dk * x) * np.exp(1j * 2 * np.pi * fk * x)
         return interleavefid(fid)
 
     spec = np.real(ng.proc_base.fft(hsvdfid))

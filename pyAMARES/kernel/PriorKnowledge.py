@@ -280,12 +280,12 @@ def assert_peak_format(input_str):
 
 def find_header_row(filename, comment_char="#"):
     """Determine the index of the first non-commented line."""
-    with open(filename, "r") as file:
+    with open(filename) as file:
         logger.debug("Checking comment lines in the prior knowledge file")
         for i, line in enumerate(file):
             if "#" in line:
                 logger.debug(f"Comment: in line {i}: {line}")
-    with open(filename, "r") as file:
+    with open(filename) as file:
         for i, line in enumerate(file):
             processedline = line.replace('"', "").replace("'", "").strip()
             if not processedline.startswith(comment_char):
@@ -462,10 +462,10 @@ def generateparameter(
 
             except NameError:
                 e2 = (
-                    "This error may be caused by the expr {} being constrained "
+                    f"This error may be caused by the expr {expr} being constrained "
                     "to a peak that is not defined yet. Define it in a column "
-                    "to the left of the {} column."
-                ).format(expr, peak)
+                    f"to the left of the {peak} column."
+                )
                 raise UnboundLocalError(e2)
 
     if preview:

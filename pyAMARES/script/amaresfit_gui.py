@@ -1,7 +1,6 @@
 import base64
 import io
 import os
-import sys
 import tempfile
 from copy import deepcopy
 from io import BytesIO
@@ -16,6 +15,8 @@ from scipy.io import savemat
 import pyAMARES
 
 st.set_page_config(page_title="PyAMARES Web Interface", layout="wide")
+
+rng = np.random.default_rng()
 
 
 def apply_custom_css():
@@ -128,7 +129,7 @@ def clean_dataframe(df):
 def perturb_value(value, percentage=5):
     """Apply random perturbation to a value"""
     percentage = float(percentage)
-    factor = np.random.uniform(1 - percentage / 100, 1 + percentage / 100)
+    factor = rng.uniform(1 - percentage / 100, 1 + percentage / 100)
     return value * factor
 
 
@@ -147,13 +148,13 @@ def perturb_table(
             all_deltas[params[i].name] = params[i].value - original_value
 
         elif params[i].name.startswith("freq"):
-            freq_random_shift = np.random.uniform(-freq_shift, freq_shift)
+            freq_random_shift = rng.uniform(-freq_shift, freq_shift)
             params[i].value += extra_freq_drift
             params[i].value += freq_random_shift
             all_deltas[params[i].name] = extra_freq_drift + freq_random_shift
 
         elif params[i].name.startswith("phi"):
-            phase_random_shift = np.random.uniform(
+            phase_random_shift = rng.uniform(
                 -np.deg2rad(phase_shift), np.deg2rad(phase_shift)
             )
             params[i].value += phase_random_shift
@@ -861,8 +862,7 @@ def main():
                         else:
                             out1.result_sum.to_csv(csv_path)
 
-                        if sys.version_info >= (3, 7):
-                            out1.styled_df.to_html(html_path)
+                        out1.styled_df.to_html(html_path)
 
                         # Set plot parameters and generate plot
                         out1.plotParameters.ifphase = ifphase
@@ -899,11 +899,10 @@ def main():
                             unsafe_allow_html=True,
                         )
 
-                        if sys.version_info >= (3, 7):
-                            st.markdown(
-                                get_download_link(html_path, "Download HTML Report"),
-                                unsafe_allow_html=True,
-                            )
+                        st.markdown(
+                            get_download_link(html_path, "Download HTML Report"),
+                            unsafe_allow_html=True,
+                        )
 
                         st.markdown(
                             get_download_link(svg_path, "Download SVG Plot"),

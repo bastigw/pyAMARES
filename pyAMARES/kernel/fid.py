@@ -4,6 +4,8 @@ import nmrglue as ng
 import numpy as np
 from loguru import logger
 
+rng = np.random.default_rng()
+
 
 def interleavefid(fid):
     """
@@ -75,8 +77,8 @@ def equation6(x, ak=75, fk=0, dk=50, phi=0, g=0):
     fid = (
         ak
         * np.exp(1j * phi)
-        * np.exp((-dk * (1 - g + g * x) * x))
-        * np.exp((1j * 2 * np.pi * fk * x))
+        * np.exp(-dk * (1 - g + g * x) * x)
+        * np.exp(1j * 2 * np.pi * fk * x)
     )
     return interleavefid(fid)
 
@@ -238,7 +240,7 @@ def fft_params(timeaxis, params, fid=False, return_mat=False):
     if fid:
         return uninterleave(multieq6(params, timeaxis, return_mat=return_mat))
     # spec = np.fft.fftshift(np.fft.fft((uninterleave(multieq6(params, timeaxis)))))
-    spec = ng.proc_base.fft((uninterleave(multieq6(params, timeaxis))))
+    spec = ng.proc_base.fft(uninterleave(multieq6(params, timeaxis)))
     return spec
 
 
@@ -313,7 +315,7 @@ def process_fid(fid, deadtime=0.0, sw=10000, lb=5.0, ifphase=False, ifplot=False
 
 def Compare_to_OXSA(inputfid, resultfid):
     dataNormSq = np.linalg.norm(inputfid - np.mean(inputfid)) ** 2
-    resNormSq = np.sum(np.abs((resultfid - inputfid)) ** 2)
+    resNormSq = np.sum(np.abs(resultfid - inputfid) ** 2)
     relativeNorm = resNormSq / dataNormSq
     logger.debug(f"Norm of residual = {resNormSq:.3f}")
     logger.debug(f"Norm of the data = {dataNormSq:.3f}")
@@ -363,7 +365,7 @@ def add_noise_FID(purefid, snr_target, indsignal=(0, 10), pts_noise=200):
     s1, s2 = indsignal
     signal_p = np.mean(np.abs(purefid[s1:s2]))
     noise_std = signal_p / snr_target
-    noise = np.random.normal(0, noise_std, purefid.shape)
+    noise = rng.normal(0, noise_std, purefid.shape)
     noisy_fid = purefid + noise
     return noisy_fid
 
