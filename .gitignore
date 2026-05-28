@@ -31,6 +31,18 @@ __pycache__
 !requirements.txt
 .jupyter_cache
 
+# Virtual environments
+.venv
+.venv*
+venv/
+env/
+
+# Toolmaker caches
+.ruff_cache/
+.pytest_cache/
+.tox/
+.uv_test_env/
+
 # Ignore log files
 tests/**/*.log
 tests/multiprocess_log.txt
