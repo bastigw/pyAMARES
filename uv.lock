@@ -1861,7 +1861,7 @@ dependencies = [
     { name = "tqdm" },
 ]
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 dev = [
     { name = "ipykernel" },
     { name = "ipywidgets" },
@@ -1897,43 +1897,52 @@ ruff = [
 [package.metadata]
 requires-dist = [
     { name = "hlsvdpro", marker = "platform_machine == 'amd64' or platform_machine == 'x86_64'", specifier = ">=2.0.0" },
-    { name = "ipykernel", marker = "extra == 'dev'" },
-    { name = "ipykernel", marker = "extra == 'jupyter'" },
-    { name = "ipywidgets", marker = "extra == 'dev'" },
-    { name = "ipywidgets", marker = "extra == 'docs'" },
     { name = "lmfit" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "mat73" },
     { name = "matplotlib" },
-    { name = "nbsphinx", marker = "extra == 'dev'" },
-    { name = "nbsphinx", marker = "extra == 'docs'" },
-    { name = "nbval", marker = "extra == 'dev'" },
     { name = "nmrglue" },
     { name = "notebook" },
-    { name = "notebook", marker = "extra == 'dev'" },
-    { name = "notebook", marker = "extra == 'jupyter'" },
     { name = "numpy" },
     { name = "pandas" },
-    { name = "pre-commit", marker = "extra == 'dev'" },
-    { name = "pre-commit", marker = "extra == 'ruff'" },
-    { name = "pygments", marker = "extra == 'dev'" },
-    { name = "pygments", marker = "extra == 'docs'" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "pytest", marker = "extra == 'ruff'" },
-    { name = "ruff", marker = "extra == 'dev'" },
-    { name = "ruff", marker = "extra == 'ruff'" },
     { name = "scipy" },
     { name = "setuptools" },
-    { name = "sphinx", marker = "extra == 'dev'" },
-    { name = "sphinx", marker = "extra == 'docs'" },
-    { name = "sphinx-rtd-theme", marker = "extra == 'dev'" },
-    { name = "sphinx-rtd-theme", marker = "extra == 'docs'" },
-    { name = "sphinx-tabs", marker = "extra == 'dev'" },
-    { name = "sphinx-tabs", marker = "extra == 'docs'" },
     { name = "sympy" },
     { name = "tqdm" },
 ]
-provides-extras = ["docs", "jupyter", "ruff", "dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "ipykernel" },
+    { name = "ipywidgets" },
+    { name = "nbsphinx" },
+    { name = "nbval" },
+    { name = "notebook" },
+    { name = "pre-commit" },
+    { name = "pygments" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme" },
+    { name = "sphinx-tabs" },
+]
+docs = [
+    { name = "ipywidgets" },
+    { name = "nbsphinx" },
+    { name = "pygments" },
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme" },
+    { name = "sphinx-tabs" },
+]
+jupyter = [
+    { name = "ipykernel" },
+    { name = "notebook" },
+]
+ruff = [
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
 
 [[package]]
 name = "pycparser"

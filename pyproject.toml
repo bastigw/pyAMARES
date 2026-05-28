@@ -1,10 +1,6 @@
-[build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "pyAMARES"
-version = "0.33.3" # Replace with dynamic versioning if needed
+dynamic = ["version"]
 description = "PyAMARES, an Open-Source Python Library for Fitting Magnetic Resonance Spectroscopy Data"
 readme = "README.rst"
 license = { file = "LICENSE.txt" }
@@ -15,9 +11,6 @@ authors = [
 keywords = ["magnetic resonance", "spectroscopy", "fitting", "MRS"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
@@ -39,17 +32,7 @@ dependencies = [
     "loguru>=0.7.3",
 ]
 
-[project.optional-dependencies]
-docs = [
-    "sphinx",
-    "nbsphinx",
-    "sphinx_tabs",
-    "sphinx_rtd_theme",
-    "Pygments",
-    "ipywidgets",
-]
-jupyter = ["ipykernel", "notebook"]
-ruff = ["ruff", "pre-commit", "pytest"]
+[dependency-groups]
 dev = [
     "ipykernel",
     "notebook",
@@ -68,14 +51,34 @@ dev = [
 [project.scripts]
 amaresFit = "pyAMARES.script.amaresfit:main"
 
+[tool.pytest.ini_options]
+addopts = "--nbval-lax --nbval-current-env -v"
+testpaths = ["tests"]
+
 [tool.ruff]
 line-length = 88
 # target-version = "py37"
 exclude = ["*.ipynb"]
-# lint.select = ["E", "F", "W", "I"]
-# lint.ignore = ["E741", "E501"]
+lint.select = [
+    "E",
+    "F",
+    "I",
+    "NPY",
+    "UP",
+] # Errors, Failures, Isort, NumPy, Upgrade
+lint.ignore = ["E741", "E501"]
 
 [project.urls]
 homepage = "https://github.com/hawkMRS/pyAMARES"
 repository = "https://github.com/hawkMRS/pyAMARES"
 documentation = "https://pyamares.readthedocs.io"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "pyAMARES/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pyAMARES"]
