@@ -64,6 +64,9 @@ dev = [
     "pytest",
 ]
 
+[project.scripts]
+amaresFit = "pyAMARES.script.amaresfit:main"
+
 [tool.ruff]
 line-length = 88
 # target-version = "py37"
