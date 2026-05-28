@@ -53,6 +53,7 @@ ruff = ["ruff", "pre-commit", "pytest"]
 dev = [
     "ipykernel",
     "notebook",
+    "nbval",
     "sphinx",
     "nbsphinx",
     "sphinx_tabs",
