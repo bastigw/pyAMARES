@@ -11,7 +11,7 @@ on:
 
 jobs:
   test:
-    name: Test installation on ${{ matrix.os }}
+    name: Test installation on ${{ matrix.os }} (Py ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -22,16 +22,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
+          enable-cache: true
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: Install package
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          python -m pip install .
+          uv sync --no-dev
 
       - name: Verify installation
         run: |
-          python -c "import pyAMARES"
+          uv run python -c "import pyAMARES; print('pyAMARES version:', pyAMARES.__version__)"
+          uv run amaresFit --help
