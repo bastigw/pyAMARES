@@ -7,3 +7,5 @@ on:
 jobs:
   test-install:
     uses: ./.github/workflows/test-install.yml
+    with:
+      python-versions: ${{ github.ref == 'refs/heads/dev' && '["3.12"]' || '["3.12", "3.13", "3.14"]' }}

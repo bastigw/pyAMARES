@@ -2,10 +2,13 @@ name: Auto Test Notebooks
 
 on:
   push:
-    branches: [main, dev] # temporarily add pr-9-rev for testing
+    branches: [main, dev]
   pull_request:
     branches: [main]
 
 jobs:
   test-notebooks:
     uses: ./.github/workflows/test-notebooks.yml
+    with:
+      # Use only 3.12 for dev pushes, and the full matrix otherwise
+      python-versions: ${{ github.ref == 'refs/heads/dev' && '["3.12"]' || '["3.12", "3.13", "3.14"]' }}
