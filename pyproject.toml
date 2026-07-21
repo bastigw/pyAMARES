@@ -47,6 +47,7 @@ dev = [
     "pre-commit",
     "pytest",
     "streamlit>=1.57.0",
+    "jupytext",
 ]
 
 [project.scripts]
@@ -55,6 +56,15 @@ amaresFit = "pyAMARES.script.amaresfit:main"
 [tool.pytest.ini_options]
 addopts = "--nbval-lax --nbval-current-env -v"
 testpaths = ["tests"]
+
+[tool.jupytext]
+# Tutorial notebooks under tests/ are authored and reviewed as MyST Markdown
+# (git-friendly diffs, no baked-in outputs, immune to the .ipynb JSON/CRLF
+# churn that plain-committed notebooks are prone to). The paired .ipynb is a
+# generated artifact, regenerated before tests run — see tests/conftest.py.
+formats = "ipynb,md:myst"
+notebook_metadata_filter = "-all, kernelspec.name, kernelspec.language, kernelspec.display_name, jupytext.text_representation.extension, jupytext.text_representation.format_name"
+cell_metadata_filter = "-all, tags, name"
 
 [tool.ruff]
 line-length = 88
