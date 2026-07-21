@@ -175,9 +175,9 @@ def parameters_to_dataframe_result(params):
         data["min"].append(param.min)
         data["max"].append(param.max)
         data["std"].append(param.stderr)
-        (data["vary"].append(param.vary),)
+        data["vary"].append(param.vary)
         data["expr"].append(param.expr)
-        df = pd.DataFrame(data)
+    df = pd.DataFrame(data)
     return df
 
 
