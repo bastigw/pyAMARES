@@ -1,14 +1,81 @@
+import argparse
 import re
+from collections.abc import Callable
 from copy import deepcopy
+from dataclasses import dataclass
 from datetime import datetime
+from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
 import pandas as pd
 from lmfit import Minimizer, Parameters
+from lmfit.minimizer import MinimizerResult
 from loguru import logger
 
 from .fid import Compare_to_OXSA, fft_params
 from .objective_func import default_objective
+
+
+@dataclass(frozen=True)
+class AMARESFitSummary:
+    """
+    Human-readable, typed summary of a single AMARES fit.
+
+    Attaches to the value returned by :func:`fitAMARES` as ``.fit_summary`` so
+    callers can inspect fit quality programmatically instead of parsing log
+    messages.
+
+    Attributes:
+        method (str): lmfit minimization method used (e.g. ``"leastsq"``, ``"least_squares"``).
+        success (bool): Whether lmfit reported the fit as converged.
+        message (str): lmfit's termination message.
+        nfev (int): Number of objective function evaluations.
+        redchi (float): Reduced chi-square of the fit.
+        resNormSq (float): Sum of squared residuals between the fitted and input FID (OXSA-style norm).
+        relativeNorm (float): ``resNormSq`` normalized by the input FID's own variance; lower is better.
+        elapsed_seconds (float): Wall-clock time spent inside ``fitAMARES`` for this call.
+    """
+
+    method: str
+    success: bool
+    message: str
+    nfev: int
+    redchi: float
+    resNormSq: float
+    relativeNorm: float
+    elapsed_seconds: float
+
+    def __str__(self) -> str:
+        status = "converged" if self.success else "DID NOT CONVERGE"
+        return (
+            f"AMARES fit ({self.method}): {status} in {self.nfev} evaluations, "
+            f"{self.elapsed_seconds:.2f}s\n"
+            f"    reduced chi-square : {self.redchi:.6g}\n"
+            f"    residual norm      : {self.resNormSq:.6g}\n"
+            f"    relative norm      : {self.relativeNorm:.6g}\n"
+            f"    lmfit message      : {self.message}"
+        )
+
+
+@runtime_checkable
+class AMARESFitResult(Protocol):
+    """
+    Structural type for the object returned by :func:`fitAMARES`.
+
+    ``fitAMARES`` always returns a deep copy of its input ``fid_parameters``
+    (an ``argparse.Namespace``), so this Protocol only documents the fields
+    ``fitAMARES`` itself adds on top of whatever ``initialize_FID`` already
+    put there (FID data, ppm/Hz axes, ``plotParameters``, etc.). It exists
+    for static typing / editor autocomplete; it is not a runtime base class.
+    """
+
+    out_obj: MinimizerResult
+    fittedParams: Parameters
+    resNormSq: float
+    relativeNorm: float
+    fitted_fid: np.ndarray
+    amares_to_plot_pd: pd.DataFrame
+    fit_summary: AMARESFitSummary
 
 
 def check_removed_expr(df):
@@ -318,13 +385,13 @@ def set_vary_parameters(params, vary_parameter_list=None):
 
 
 def fitAMARES_kernel(
-    fid_parameters,
-    fitting_parameters,
-    objective_func,
-    method="least_squares",
-    fit_range=None,
-    fit_kws=None,
-):
+    fid_parameters: argparse.Namespace,
+    fitting_parameters: Parameters,
+    objective_func: Callable[..., np.ndarray],
+    method: str = "least_squares",
+    fit_range: tuple[int, int] | None = None,
+    fit_kws: dict[str, Any] | None = None,
+) -> MinimizerResult:
     """
     Core fitting routine for the AMARES algorithm using a specified objective function and fitting parameters.
 
@@ -375,22 +442,23 @@ def fitAMARES_kernel(
 
 
 def fitAMARES(
-    fid_parameters,
-    fitting_parameters,
-    objective_func=default_objective,
-    method="least_squares",
-    ifplot=True,
-    fit_range=None,
-    inplace=False,
-    plotParameters=None,
-    initialize_with_lm=False,
-    fit_kws=None,
-):
+    fid_parameters: argparse.Namespace,
+    fitting_parameters: Parameters,
+    objective_func: Callable[..., np.ndarray] = default_objective,
+    method: str = "least_squares",
+    ifplot: bool = True,
+    fit_range: tuple[int, int] | None = None,
+    plotParameters: argparse.Namespace | None = None,
+    initialize_with_lm: bool = False,
+    fit_kws: dict[str, Any] | None = None,
+) -> AMARESFitResult:
     """
     Fit the AMARES algorithm to the given FID parameters and fitting parameters.
 
-    This function applies the AMARES fitting algorithm to the provided FID and fitting parameters,
-    optionally plotting the results and modifying the parameters in place.
+    This function applies the AMARES fitting algorithm to the provided FID and
+    fitting parameters, optionally plotting the results. Neither
+    ``fid_parameters`` nor ``fitting_parameters`` is ever mutated: both are
+    deep-copied internally before fitting, and the (fitted) copy is returned.
 
     Args:
         fid_parameters (argspace namespace): The FID parameters to be used in the fitting process.
@@ -399,8 +467,6 @@ def fitAMARES(
         method (str, optional): The method to be used for fitting. Defaults to 'least_squares'.
         initialize_with_lm (bool, optional, default False, new in 0.3.9): If True, a Levenberg-Marquardt initializer (``least_sq``) is executed internally.
         fit_range (tuple or None, optional): The range within which to perform the fitting. Defaults to None.
-        inplace (bool, optional): If True, the original fid_parameters will be modified.
-                                    Otherwise, a copy will be modified and returned.
         plotParameters (argparse.Namespace or None, optional): A namespace containing parameters for plotting and data processing. The namespace includes:
 
             - deadtime (float): The dead time before the FID acquisition starts.
@@ -412,20 +478,19 @@ def fitAMARES(
             If None, default parameters defined in fid_parameters.plotParameters are used.
 
     Returns:
-        If ``inplace=True``, the function returns the lmfit.MinimizerResult object while the input ``fid_parameters`` is modified in place.
-        Otherwise, the function returns the modified ``fid_parameters`` instead of modifying ``fid_parameters`` inplace.
+        AMARESFitResult: A deep copy of ``fid_parameters`` with the fit results
+        added: ``.out_obj`` (the ``lmfit.minimizer.MinimizerResult``),
+        ``.fittedParams``, ``.resNormSq``, ``.relativeNorm``, ``.fitted_fid``,
+        ``.amares_to_plot_pd``, and ``.fit_summary`` (an :class:`AMARESFitSummary`
+        describing convergence, chi-square, residual norms and elapsed time —
+        also logged at INFO level).
 
     """
     from ..util.report import report_amares
 
-    if inplace:
-        logger.debug("The fid_parameters will be modified inplace!")
-    else:
-        logger.debug(
-            f"A copy of the input fid_parameters will be returned because inplace={inplace}"
-        )
-        fid_parameters = deepcopy(fid_parameters)
-        fitting_parameters = deepcopy(fitting_parameters)
+    timebefore = datetime.now()
+    fid_parameters = deepcopy(fid_parameters)
+    fitting_parameters = deepcopy(fitting_parameters)
     # Generate toleration if fit_kws is None
     if fit_kws is None:
         amp0 = np.abs(np.max(fid_parameters.fid))
@@ -467,12 +532,18 @@ def fitAMARES(
     # report_fit(out_obj)
     report_amares(out_obj.params, fid_parameters, verbose=False)  # CRLB estimation
     resultfid = fft_params(fid_parameters.timeaxis, out_obj.params, fid=True)
-    print_lmfit_fitting_results(
-        out_obj
-    )  # New in 0.3.14. Print out key fitting such as iterations and chi-square.
     fid_parameters.resNormSq, fid_parameters.relativeNorm = Compare_to_OXSA(
         inputfid=fid_parameters.fid, resultfid=resultfid
     )
+    elapsed_seconds = (datetime.now() - timebefore).total_seconds()
+    fit_summary = print_lmfit_fitting_results(
+        out_obj,
+        method=method,
+        resNormSq=fid_parameters.resNormSq,
+        relativeNorm=fid_parameters.relativeNorm,
+        elapsed_seconds=elapsed_seconds,
+    )  # New in 0.3.14. Print out key fitting such as iterations and chi-square.
+    out_obj.fit_summary = fit_summary
     amares_to_plot_pd = fid_parameters.result_multiplets[
         ["chem shift(ppm)"]
     ].copy()  # Make a copy here
@@ -491,15 +562,18 @@ def fitAMARES(
         if plotParameters is None:
             plotParameters = fid_parameters.plotParameters
         plotAMARES(fid_parameters, out_obj.params, plotParameters)
-    if inplace:
-        return out_obj
-    else:
-        fid_parameters.out_obj = out_obj
-        fid_parameters.fittedParams = out_obj.params
-        return fid_parameters
+    fid_parameters.out_obj = out_obj
+    fid_parameters.fittedParams = out_obj.params
+    fid_parameters.fit_summary = fit_summary
+    return fid_parameters
 
 
-def plotAMARES(fid_parameters, fitted_params=None, plotParameters=None, filename=None):
+def plotAMARES(
+    fid_parameters: argparse.Namespace,
+    fitted_params: Parameters | None = None,
+    plotParameters: argparse.Namespace | None = None,
+    filename: str | None = None,
+) -> None:
     """
     Plots the results of AMARES fitting.
 
@@ -548,21 +622,38 @@ def plotAMARES(fid_parameters, fitted_params=None, plotParameters=None, filename
     )
 
 
-def print_lmfit_fitting_results(result):
+def print_lmfit_fitting_results(
+    result: MinimizerResult,
+    method: str | None = None,
+    resNormSq: float | None = None,
+    relativeNorm: float | None = None,
+    elapsed_seconds: float | None = None,
+) -> AMARESFitSummary:
     """
-    Print important fitting results from an lmfit MinimizerResult object.
+    Build, log, and return a typed summary of an lmfit fitting result.
 
     Args:
-        result (lmfit.MinimizerResult): The result object from lmfit fitting.
+        result (lmfit.minimizer.MinimizerResult): The result object from lmfit fitting.
+        method (str, optional): Minimization method used (e.g. "leastsq"). Defaults to "unknown" if not provided.
+        resNormSq (float, optional): Sum of squared residuals, as computed by ``Compare_to_OXSA``. Defaults to NaN if not provided.
+        relativeNorm (float, optional): Residual norm relative to the input FID's own variance. Defaults to NaN if not provided.
+        elapsed_seconds (float, optional): Wall-clock time spent fitting. Defaults to NaN if not provided.
 
+    Returns:
+        AMARESFitSummary: A typed, human-readable summary of the fit. Logged at
+        INFO level so it is visible without enabling debug logging.
     """
-    msg = ["\n    Lmfit Fitting Results:"]
-    msg.append("----------------")
-    msg.append(f"Number of function evaluations (nfev): {result.nfev}")
-    msg.append(f"Reduced chi-squared (redchi): {result.redchi}")
-    msg.append(f"Fit success status: {'Success' if result.success else 'Failure'}")
-    msg.append(f"Fit message: {result.message}")
-
-    msg_string = "\n    ".join(msg)
-
-    logger.debug(msg_string)
+    summary = AMARESFitSummary(
+        method=method if method is not None else "unknown",
+        success=result.success,
+        message=result.message,
+        nfev=result.nfev,
+        redchi=result.redchi,
+        resNormSq=resNormSq if resNormSq is not None else float("nan"),
+        relativeNorm=relativeNorm if relativeNorm is not None else float("nan"),
+        elapsed_seconds=elapsed_seconds
+        if elapsed_seconds is not None
+        else float("nan"),
+    )
+    logger.info(str(summary))
+    return summary

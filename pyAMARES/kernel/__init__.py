@@ -11,6 +11,8 @@ from .fid import (
     uninterleave,
 )
 from .lmfit import (
+    AMARESFitResult,
+    AMARESFitSummary,
     dataframe_to_parameters,
     filter_param_by_ppm,
     fitAMARES,
@@ -29,6 +31,8 @@ from .objective_func import default_objective, objective, objective3, objective_
 from .PriorKnowledge import generateparameter, initialize_FID
 
 __all__ = [
+    "AMARESFitResult",
+    "AMARESFitSummary",
     "interleavefid",
     "uninterleave",
     "multieq6",
