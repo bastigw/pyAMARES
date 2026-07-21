@@ -52,7 +52,6 @@ def fit_dataset(
                 method=method,  # Use method passed as a parameter to the function
                 initialize_with_lm=initialize_with_lm,  # New in 0.3.9
                 ifplot=False,
-                inplace=True,
             )
         else:
             out = fitAMARES(
@@ -61,11 +60,10 @@ def fit_dataset(
                 method=method,  # Use method passed as a parameter to the function
                 initialize_with_lm=initialize_with_lm,  # New in 0.3.9
                 ifplot=False,
-                inplace=True,
                 objective_func=objective_func,
             )
 
-        result_table = FIDobj_current.result_multiplets
+        result_table = out.result_multiplets
         del FIDobj_current
         if return_out:
             return result_table, out

@@ -846,7 +846,6 @@ def main():
                             fitting_parameters=fitting_parameters,
                             method=method,
                             ifplot=False,
-                            inplace=False,
                             initialize_with_lm=initialize_with_lm,
                         )
 

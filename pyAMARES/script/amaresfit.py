@@ -189,7 +189,6 @@ def main():
         fitting_parameters=fitting_parameters,
         method="leastsq",
         ifplot=False,
-        inplace=False,
     )
 
     if args.method != "leastsq":
@@ -198,7 +197,6 @@ def main():
             fitting_parameters=out1.fittedParams,
             method=args.method,
             ifplot=False,
-            inplace=False,
         )
 
     if args.use_hsvd:
