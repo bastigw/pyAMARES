@@ -1,4 +1,5 @@
 import re
+from copy import deepcopy
 from datetime import datetime
 
 import numpy as np
@@ -305,8 +306,6 @@ def set_vary_parameters(params, vary_parameter_list=[]):
         lmfit.Parameters object: The modified Parameters object with the specified
     parameters set to vary and all others fixed.
     """
-    from copy import deepcopy
-
     params = deepcopy(params)
     for row in params:
         if row in vary_parameter_list:
@@ -420,8 +419,6 @@ def fitAMARES(
     if inplace:
         logger.debug("The fid_parameters will be modified inplace!")
     else:
-        from copy import deepcopy
-
         logger.debug(
             f"A copy of the input fid_parameters will be returned because inplace={inplace}"
         )
