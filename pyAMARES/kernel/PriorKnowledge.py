@@ -17,6 +17,19 @@ from loguru import logger
 from .fid import fft_params
 
 
+def _safe_eval(expr):
+    """
+    Evaluate a numeric/tuple literal expression without exposing builtins or names.
+
+    Prior knowledge files can contain arbitrary user-supplied strings, so a bare
+    ``eval()`` would let a malicious file execute arbitrary code (e.g. via
+    ``__import__``). Restricting globals/locals to empty dicts still allows the
+    numeric literals, arithmetic and tuple syntax this module relies on, but
+    blocks name lookups and builtins.
+    """
+    return eval(expr, {"__builtins__": {}}, {})
+
+
 def safe_convert_to_numeric(x):
     try:
         return pd.to_numeric(
@@ -73,7 +86,7 @@ def evaluate_expression_with_units(expr, row, MHz):
             part_value = str(row[part])
             new_expr = new_expr.replace(part, part_value)
     try:
-        return eval(new_expr)
+        return _safe_eval(new_expr)
     except Exception:
         # Return the original expression if evaluation fails
         return expr
@@ -228,7 +241,7 @@ def parse_bounds(df):
                 and df_bounds.at[idx, col].startswith("(")
                 and df_bounds.at[idx, col].endswith(")")
             ):
-                lb, ub = eval(df_bounds.at[idx, col])
+                lb, ub = _safe_eval(df_bounds.at[idx, col])
                 df_lb.at[idx, col] = lb
                 df_ub.at[idx, col] = ub
             elif (
@@ -236,7 +249,7 @@ def parse_bounds(df):
                 and df_bounds.at[idx, col].startswith("(")
                 and (not df_bounds.at[idx, col].endswith(")"))
             ):
-                lb = eval(df_bounds.at[idx, col].replace("(", "").replace(",", ""))
+                lb = _safe_eval(df_bounds.at[idx, col].replace("(", "").replace(",", ""))
                 df_lb.at[idx, col] = lb
                 # df_ub.at[idx, col] = df_bounds.at[idx, col]
                 df_ub.at[idx, col] = np.nan
@@ -245,7 +258,7 @@ def parse_bounds(df):
                 and (not df_bounds.at[idx, col].startswith("("))
                 and df_bounds.at[idx, col].endswith(")")
             ):
-                ub = eval(df_bounds.at[idx, col].replace(",", "").replace(")", ""))
+                ub = _safe_eval(df_bounds.at[idx, col].replace(",", "").replace(")", ""))
                 df_lb.at[idx, col] = np.nan
                 df_ub.at[idx, col] = ub
             else:
