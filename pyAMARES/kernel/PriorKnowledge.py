@@ -74,8 +74,12 @@ def evaluate_expression_with_units(expr, row, MHz):
             new_expr = new_expr.replace(part, part_value)
     try:
         return eval(new_expr)
-    except Exception:
+    except Exception as e:
         # Return the original expression if evaluation fails
+        logger.warning(
+            f"Could not evaluate expression '{new_expr}' (from '{expr}'): {e}. "
+            "Keeping the original expression string."
+        )
         return expr
 
 
@@ -460,13 +464,13 @@ def generateparameter(
                         name=name, value=val, min=lval, max=uval, vary=vary, expr=expr
                     )
 
-            except NameError:
+            except NameError as e:
                 e2 = (
                     f"This error may be caused by the expr {expr} being constrained "
                     "to a peak that is not defined yet. Define it in a column "
                     f"to the left of the {peak} column."
                 )
-                raise UnboundLocalError(e2)
+                raise NameError(e2) from e
 
     if preview:
         return allpara, peaklist, pk
