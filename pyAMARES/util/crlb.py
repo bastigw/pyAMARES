@@ -1,4 +1,5 @@
 import re
+from functools import cache
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,6 +10,21 @@ from sympy.parsing import sympy_parser
 
 from ..kernel import Jac6, multieq6, uninterleave
 from .report import report_crlb
+
+
+@cache
+def _diff_expr_cached(expr: str) -> float:
+    """
+    Symbolic derivative of a prior-knowledge constraint expression, cached by
+    expression string.
+
+    create_pmatrix() re-derives the same handful of expr strings on every
+    single fitAMARES() call (e.g. once per voxel in a batch fit), even though
+    the expressions themselves come from the prior-knowledge file and don't
+    change between fits of the same model. sympy parsing + differentiation is
+    comparatively expensive, so cache it for the life of the process.
+    """
+    return float(sympy.diff(sympy_parser.parse_expr(expr)).evalf())
 
 
 def calculateCRB(D, variance, P=None, verbose=False, condthreshold=1e11, cond=False):
@@ -194,10 +210,7 @@ def create_pmatrix(pkpd, verbose=False, ifplot=False):
 
     # Calculate partial derivatives of expressions using sympy. May simply use string
     # operation in the future.
-    plm = [
-        sympy.diff(sympy_parser.parse_expr(expr)).evalf()
-        for expr in pkpd[pkpd.expr.notna()]["expr"]
-    ]
+    plm = [_diff_expr_cached(expr) for expr in pkpd[pkpd.expr.notna()]["expr"]]
     Pmatrix = np.zeros((len(pkpd[pkpd["vary"]]), len(pkpd)))  # all vs free parameters
     freepd = pkpd[pkpd["vary"]].copy()  # Create a copy to avoid SettingWithCopyWarning
     freepd["newid"] = np.arange(len(freepd))
