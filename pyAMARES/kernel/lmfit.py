@@ -293,7 +293,7 @@ def load_parameter_from_csv(filename="params.csv"):
     return params
 
 
-def set_vary_parameters(params, vary_parameter_list=[]):
+def set_vary_parameters(params, vary_parameter_list=None):
     """
     Fix all parameters except for those specified in vary_parameter_list and set them to be varied.
 
@@ -307,6 +307,8 @@ def set_vary_parameters(params, vary_parameter_list=[]):
     """
     from copy import deepcopy
 
+    if vary_parameter_list is None:
+        vary_parameter_list = []
     params = deepcopy(params)
     for row in params:
         if row in vary_parameter_list:
