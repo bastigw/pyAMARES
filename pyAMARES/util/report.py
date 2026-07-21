@@ -152,7 +152,7 @@ def extract_key_parameters(df):
     ]
 
 
-def report_amares(outparams, fid_parameters, verbose=False):
+def report_amares(outparams, fid_parameters, verbose=False, build_styled_report=True):
     """
     Generates a comprehensive report on AMARES analysis results.
 
@@ -160,10 +160,20 @@ def report_amares(outparams, fid_parameters, verbose=False):
         outparams (lmfit fitting parameter): Output parameters from the fitting process.
         fid_parameters (argspace Namespace object): FID parameters object.
         verbose (bool, optional): Controls verbosity of output. Defaults to False.
+        build_styled_report (bool, optional): If True (default), build ``.styled_df``
+            and ``.simple_df`` as CRLB-highlighted ``pandas.Styler`` objects for display.
+            Building a Styler is comparatively expensive (row-wise Python callback) and
+            its output is rarely used in batch/programmatic fitting (e.g. per-voxel
+            fitting of thousands of spectra), where only the numeric ``.result_multiplets``
+            / ``.result_sum`` DataFrames matter. Set to False in that case to skip it;
+            ``.styled_df`` / ``.simple_df`` are still set, but to the plain (unstyled)
+            DataFrame equivalents rather than ``None``, so existing code that reads them
+            keeps working.
 
     Returns:
-        pandas.Styler: A DataFrame for presentation of the results with rows whose CRLB<=20
-        are highlighted by green.
+        pandas.Styler or pandas.DataFrame: The same object assigned to
+        ``fid_parameters.styled_df`` — a CRLB-highlighted Styler if
+        ``build_styled_report=True``, otherwise the corresponding plain DataFrame.
     """
     from pyAMARES.util.crlb import create_pmatrix, evaluateCRB  # delayed import
 
@@ -176,22 +186,20 @@ def report_amares(outparams, fid_parameters, verbose=False):
         for x in resulttable[resulttable["name"].str.startswith("phi")]["name"].values
     ]
 
-    final_table = pd.DataFrame()
-    all_peak_data = []
-
-    for peak in peaklist:
-        peak_data = []
-
-        for parameter in ["ak", "freq", "dk", "phi", "g"]:
-            var_name = parameter + "_" + peak
-            currentrow = resulttable[resulttable["name"] == var_name][
-                ["value", "std", "CRLB %"]
-            ].copy()
-            peak_data.extend(currentrow.values.flatten())
-        all_peak_data.append(peak_data)
+    # Indexed once and reused for all peaks: a single label-based .loc lookup
+    # per peak instead of a fresh "name" == var_name boolean-mask scan per
+    # (peak, parameter) pair, which dominated report_amares's runtime.
+    indexed = resulttable.set_index("name")[["value", "std", "CRLB %"]]
+    parameter_prefixes = ["ak", "freq", "dk", "phi", "g"]
+    all_peak_data = [
+        indexed.loc[[f"{parameter}_{peak}" for parameter in parameter_prefixes]]
+        .to_numpy()
+        .flatten()
+        for peak in peaklist
+    ]
 
     column_names = []
-    for parameter in ["ak", "freq", "dk", "phi", "g"]:
+    for parameter in parameter_prefixes:
         column_names.extend(
             [parameter + "_value", parameter + "_std", parameter + "_CRLB %"]
         )
@@ -304,10 +312,14 @@ def report_amares(outparams, fid_parameters, verbose=False):
         logger.debug("No peaklist, probably it is from an HSVD initialized object")
     fid_parameters.result_multiplets = result  # Keep the multiplets
     # Sum multiplets if needed
-    if contains_non_numeric_strings(result):  # assigned peaks in the index
-        fid_parameters.result_sum = sum_multiplets(result)
+    has_multiplets = contains_non_numeric_strings(result)  # assigned peaks in the index
+    if has_multiplets:
         # Sum the amplitude of each multiplets. For example, make BATP, BATP2, BATP3 as BATP
-        if if_style:
+        fid_parameters.result_sum = sum_multiplets(result)
+
+    build_styled = build_styled_report and if_style
+    if has_multiplets:
+        if build_styled:
             styled_df = fid_parameters.result_sum.style.apply(
                 highlight_rows_crlb_less_than_02, axis=1
             ).format("{:.3f}")
@@ -317,10 +329,10 @@ def report_amares(outparams, fid_parameters, verbose=False):
         else:
             styled_df = (
                 fid_parameters.result_sum
-            )  # python 3.7 and older may not support Jinja2
+            )  # python 3.7 and older may not support Jinja2, or styling skipped
             simple_df = extract_key_parameters(fid_parameters.result_sum)
     else:  # all numers, HSVD assigned parameters
-        if if_style:
+        if build_styled:
             styled_df = fid_parameters.result_multiplets.style.apply(
                 highlight_rows_crlb_less_than_02, axis=1
             ).format("{:.3f}")
@@ -336,7 +348,7 @@ def report_amares(outparams, fid_parameters, verbose=False):
         else:
             styled_df = (
                 fid_parameters.result_multiplets
-            )  # python 3.7 and older may not support Jinja2
+            )  # python 3.7 and older may not support Jinja2, or styling skipped
             if hasattr(fid_parameters, "result_sum"):
                 simple_df = extract_key_parameters(fid_parameters.result_sum)
             else:
