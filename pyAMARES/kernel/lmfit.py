@@ -451,6 +451,7 @@ def fitAMARES(
     plotParameters: argparse.Namespace | None = None,
     initialize_with_lm: bool = False,
     fit_kws: dict[str, Any] | None = None,
+    build_styled_report: bool = True,
 ) -> AMARESFitResult:
     """
     Fit the AMARES algorithm to the given FID parameters and fitting parameters.
@@ -476,6 +477,11 @@ def fitAMARES(
             - ifphase (bool): turn on 0th and 1st order phasing.
 
             If None, default parameters defined in fid_parameters.plotParameters are used.
+        build_styled_report (bool, optional): If True (default), build the CRLB-highlighted
+            ``pandas.Styler`` objects for ``.styled_df``/``.simple_df``. This is the most
+            expensive part of report generation and its output is rarely used in batch
+            fitting; set to False there. See ``pyAMARES.util.report.report_amares`` for
+            details. ``.styled_df``/``.simple_df`` are still set either way.
 
     Returns:
         AMARESFitResult: A deep copy of ``fid_parameters`` with the fit results
@@ -530,7 +536,12 @@ def fitAMARES(
         )  # fitting kernel
 
     # report_fit(out_obj)
-    report_amares(out_obj.params, fid_parameters, verbose=False)  # CRLB estimation
+    report_amares(
+        out_obj.params,
+        fid_parameters,
+        verbose=False,
+        build_styled_report=build_styled_report,
+    )  # CRLB estimation
     resultfid = fft_params(fid_parameters.timeaxis, out_obj.params, fid=True)
     fid_parameters.resNormSq, fid_parameters.relativeNorm = Compare_to_OXSA(
         inputfid=fid_parameters.fid, resultfid=resultfid
